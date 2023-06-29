@@ -1,12 +1,12 @@
 import unittest
 
-from job.ManageData import GetData
+from job.ManageData import ManageData
 from job.DB import DB
 
 
 class MyTestCase(unittest.TestCase):
     def test_get_vacancies(self):
-        result = GetData.get_vacancies('python', None, 'Москва')
+        result = ManageData.get_vacancies('python', None, 'Москва')
         print(result)
         self.assertEqual(True, result is not None)
 
