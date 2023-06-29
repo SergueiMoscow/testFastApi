@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test FastAPI</title>
+    <link type="text/css" rel="stylesheet" href="/static/css/style.css"/>
+    <script src="/static/js/func.js"></script>
+</head>
+<body>
+<div id="content">
+    <div id="left">
+        <h3>Фильтры</h3>
+        <ul>
+            <li><label for="keyword">Ключевое слово</label><br><input id="keyword" type="text" value="python"></li>
+            <li><label for="keyword">Статус</label><br>
+                <select id="status">
+                    <option value="0">Все</option>
+                    <option value="1">Без статуса</option>
+                    <option value="2">Избранные</option>
+                    <option value="3">В работе</option>
+                    <option value="4">Отклонённые</option>
+                </select>
+            </li>
+            <li>
+                <label for="region">Регион</label><br>
+                <select id="region" value="Москва">
+
+                </select>
+            </li>
+        </ul>
+        <div id="left-buttons">
+            <button id="show">Показать</button>
+            <button id="load">Подгрузить</button>
+        </div>
+    </div>
+    <div id="right">
+        <p>Test</p>
+    </div>
+</div>
+<script>
+const getRegions = () => {
+makeRequest(
+    "/regions",
+    "GET",
+    {},
+    function(data) {
+        arr = JSON.parse(data);
+        select = document.getElementById("region");
+        const opt = document.createElement('option');
+        opt.textContent = 'Все';
+        opt.value = 'ALL';
+        region.appendChild(opt);
+        arr.forEach(el => {
+            const opt = document.createElement('option');
+            opt.textContent = el[0];
+            opt.value = el[0];
+            region.appendChild(opt)
+        });
+        ready();
+    }
+);
+};
+
+const changeStatusClick = (event) => {
+    action = event.target.parentElement.id
+    id = action.split('_')[1];
+    text = document.getElementById(`c_${id}`).value;
+    send(
+    {
+        url: "/action",
+        method: "POST",
+        body: {"action": action, "text": text},
+        success: function(data) {
+            console.log(data);
+        }
+    });
+    console.log(id);
+};
+
+const addButtons = (vacancy_div, row) => {
+    // div for buttons
+    const div_btns = document.createElement('div');
+    div_btns.classList.add("btns");
+
+    // buttons
+    const btn_favorite = document.createElement('button');
+    const btn_response = document.createElement('button');
+    const btn_reject = document.createElement('button');
+    const btn_delete = document.createElement('button');
+
+    btn_favorite.classList.add("btn-favorite");
+    btn_response.classList.add("btn-response");
+    btn_reject.classList.add("btn-reject");
+    btn_delete.classList.add("btn-delete");
+
+    btn_favorite.id = `f_${row['id']}`
+    btn_response.id = `r_${row['id']}`
+    btn_reject.id = `j_${row['id']}`
+    btn_delete.id = `d_${row['id']}`
+
+    btn_favorite.addEventListener('click', changeStatusClick);
+    btn_response.addEventListener('click', changeStatusClick);
+    btn_reject.addEventListener('click', changeStatusClick);
+    btn_delete.addEventListener('click', changeStatusClick);
+
+    const img_favorite = document.createElement('span');
+    const img_response = document.createElement('span');
+    const img_reject = document.createElement('span');
+    const img_delete = document.createElement('span');
+
+    img_favorite.classList.add("img-favorite");
+    img_response.classList.add("img-response");
+    img_reject.classList.add("img-reject");
+    img_delete.classList.add("img-delete");
+
+    btn_favorite.appendChild(img_favorite)
+    btn_response.appendChild(img_response)
+    btn_reject.appendChild(img_reject)
+    btn_delete.appendChild(img_delete)
+
+    div_btns.appendChild(btn_favorite);
+    div_btns.appendChild(btn_response);
+    div_btns.appendChild(btn_reject);
+    div_btns.appendChild(btn_delete);
+    vacancy_div.appendChild(div_btns)
+};
+
+const getVacancies = () => {
+    word = document.getElementById("keyword").value;
+    status = document.getElementById("status").value;
+    region = document.getElementById("region").value;
+    makeRequest(
+        "/vacancies",
+        "GET",
+        {
+            "word": word,
+            "status": status,
+            "region": region,
+        },
+        function(data) {
+            arr = JSON.parse(data)
+            right = document.getElementById("right");
+            removeChildren(right);
+            arr.forEach(row => {
+                const vacancy_div = document.createElement('div');
+                right.appendChild(vacancy_div);
+                vacancy_div.classList.add("vacancy");
+                // vacancy_div.innerHTML = row.name;
+                for (const key in row) {
+                    const div = document.createElement('div');
+                    div.classList.add(key);
+                    if (key == 'url') {
+                        div.innerHTML = `<a href="${row[key]}">${row['source']}</a>`
+                    }
+                    else {
+                        div.innerHTML = row[key];
+                    }
+                    vacancy_div.appendChild(div);
+                }
+
+                // input comment
+                const input_text = document.createElement('input');
+                input_text.type = 'text';
+                input_text.id = `c_${row['id']}`;
+                vacancy_div.appendChild(input_text);
+
+                addButtons(vacancy_div, row)
+
+                //<button><img src="/static/img/star-32_grey.png" /></button>
+                //<button><img src="/static/img/message-32_grey.png" /></button>
+                //<button><img src="/static/img/x-mark-2-32_grey.png" /></button>
+                //<button><img src="/static/img/trash-9-32_grey.png" /></button>
+            });
+        }
+    );
+};
+
+removeChildren = (div) => {
+    while (div.firstChild) {
+        removeChildren(div.firstChild);
+        div.removeChild(div.firstChild);
+    }
+}
+
+saveInLocalStorage = () => {
+    values = {
+        "keyword": document.getElementById("keyword").value,
+        "region": document.getElementById("region").value
+    };
+    localStorage.setItem('values', JSON.stringify(values));
+}
+
+select_region = document.getElementById("region");
+select_region.addEventListener("change", function() {
+    getVacancies();
+    saveInLocalStorage();
+});
+
+select_status = document.getElementById("status");
+select_status.addEventListener("change", function() {
+    getVacancies();
+});
+
+input_keyword = document.getElementById("keyword");
+input_keyword.addEventListener("change", function() {
+    getVacancies();
+    saveInLocalStorage();
+});
+
+btn_show = document.getElementById("show");
+btn_show.addEventListener("click", function() {
+    getVacancies();
+});
+
+ready = () => {
+    values = localStorage.getItem('values');
+    if (values != null) {
+        values = JSON.parse(values);
+        document.getElementById("keyword").value = values.keyword;
+        document.getElementById("region").value = values.region;
+        console.log(values.region);
+    }
+    //getVacancies();
+};
+
+document.addEventListener("DOMContentLoaded", ready);
+getRegions();
+</script>
+</body>
+</html>
