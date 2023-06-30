@@ -1,4 +1,6 @@
-from job.DB import DB
+from sqlalchemy.orm import sessionmaker
+
+from job.models import engine
 
 
 class ManageData:
@@ -10,9 +12,16 @@ class ManageData:
         'd': 'DEL'
     }
 
-    @staticmethod
-    def get_regions():
-        db = DB()
+    @classmethod
+    def __set_db(cls):
+        if cls.session is None:
+            _session = sessionmaker(bind=engine)
+            cls.session = _session()
+
+    @classmethod
+    def get_regions(cls):
+        results = cls.session.query(Region.area).order_by(Region.area).all()
+
         result = db.select('regions', 'TRUE', fields=['area'])
         return result
 
