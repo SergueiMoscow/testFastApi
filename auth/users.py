@@ -1,6 +1,6 @@
 import jwt
-from fastapi import HTTPException, Header
-from sqlalchemy import create_engine
+from fastapi import HTTPException, Header, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import sessionmaker
 
 from auth.jwt_token import SECRET_KEY
@@ -8,6 +8,7 @@ from job.models import User, engine
 from passlib.context import CryptContext
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer()
 
 
 def create_super_user(username='admin', password='password', email='admin@example.com'):
@@ -26,15 +27,14 @@ def get_user(username: str) -> User:
     return user
 
 
-async def get_current_user(token: str = Header(...)):
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        username: str = payload.get("username")
+        payload = jwt.decode(credentials.credentials, SECRET_KEY, algorithms=["HS256"])
+        username = payload.get("username")
         if username is None:
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     except jwt.exceptions.DecodeError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
-
     user = get_user(username)
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid username or password")

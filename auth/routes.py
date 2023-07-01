@@ -39,8 +39,7 @@ def login(credentials: HTTPBasicCredentials):
 
 @router.get("/protected")
 async def protected_route(current_user=Depends(get_current_user)):
-    return {"message": "This is a protected route."}
-
+    return {"message": "This is a protected route.", "user": current_user.username, "email": current_user.email}
 
 def authenticate_user(username: str, password: str):
     pass
