@@ -2,6 +2,7 @@ from sqlalchemy import text, select, inspect
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
+from job.logger import debug
 from job.models import engine, Vacancy, Status
 
 
@@ -53,7 +54,7 @@ class ManageData:
                 created_at_value = item.get('published_at')
                 if isinstance(created_at_value, datetime):
                     item['published_at'] = created_at_value.strftime('%Y-%m-%d %H:%M:%S')
-                print(f'Row: {item}')
+                debug(f'Row: {item}')
             return result
         else:
             return None
@@ -71,10 +72,10 @@ class ManageData:
         }
         rows = cls.session.execute(function, params)
         columns = rows.keys()
-        print(f'Keys: ', columns)
+        debug(f'Keys: {columns}')
         row = rows.fetchone()
         row = dict(zip(columns, row))
-        print(f'Row: ', row)
+        debug(f'Row: ', row)
         new_value = 1 if row[fld_status] is None or row[fld_status] == 0 else 0
         values = {
             'user_id': user_id,

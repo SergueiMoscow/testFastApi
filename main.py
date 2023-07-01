@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from typing import Dict, Any
 
 from job.ManageData import ManageData
+from job.logger import debug
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"))
@@ -29,7 +30,7 @@ async def vacancies(word: str = '', status: str = '', region: str = ''):
 
 @app.post("/action")
 async def action(payload: Dict[Any, Any]):
-    print(f'Payload: {payload}')
+    debug(f'Payload: {payload}')
     action_type, vacancy_id = payload['action'].split('_')
     ManageData.add_action(action_type, vacancy_id, payload['text'])
 
