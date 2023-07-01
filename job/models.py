@@ -67,7 +67,7 @@ class Vacancy(Base):
     Index('ix_salary_from', 'salary_from')
 
 
-class Statuses(Base):
+class Status(Base):
     __tablename__ = 'statuses'
 
     id = Column(Integer, primary_key=True)
@@ -75,7 +75,8 @@ class Statuses(Base):
     vacancy_id = Column(Integer, nullable=False)
     status = Column(String(50), nullable=False)
     value = Column(String(1), nullable=False, default='')
-    created_at = Column(DateTime(timezone=True), nullable=False)
+    comment = Column(Text, nullable=True, default='')
+    created_at = Column(DateTime, server_default=func.now(), index=True)
 
     Index('statuses_id', 'id', postgresql_using='btree'),
     Index('statuses_user', 'user_id', postgresql_using='btree')
@@ -93,6 +94,7 @@ class RegionView:
                 '''
             )
             connection.execute(query)
+
 
 def get_db_objects_names(object_type: str) -> list:
     """Возвращает список объектов (функций или представлений), описанных SQL кодом в папке db
@@ -166,7 +168,7 @@ def check_functions():
 
 
 if __name__ == '__main__':
-    """В случае запуска непосредственно этого файла создаются все таблицы и функции.
+    """В случае запуска непосредственно этого файла создаются все таблицы, представления и функции.
     """
     Base.metadata.create_all(engine)
     check_functions()

@@ -52,8 +52,8 @@ makeRequest(
         region.appendChild(opt);
         arr.forEach(el => {
             const opt = document.createElement('option');
-            opt.textContent = el[0];
-            opt.value = el[0];
+            opt.textContent = el;
+            opt.value = el;
             region.appendChild(opt)
         });
         ready();
