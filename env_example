@@ -3,3 +3,4 @@ pgsql_port = 5432
 pgsql_user = 'user'
 pgsql_password = 'password'
 pgsql_db = 'job'
+SECRET_KEY = 'your_secret_key'

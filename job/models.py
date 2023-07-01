@@ -16,19 +16,21 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
-    login = Column(String)
-    password = Column(String)
-    email = Column(String)
-    first_name = Column(String)
-    last_name = Column(String)
-    phone = Column(String)
+    username = Column(String, nullable=False)
+    password = Column(String, nullable=False)
+    email = Column(String, nullable=False)
+    first_name = Column(String, nullable=True, default=None)
+    last_name = Column(String, nullable=True, default=None)
+    phone = Column(String, nullable=True, default=None)
     created_at = Column(DateTime, server_default=func.now(), index=True)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), index=True)
     deleted_at = Column(DateTime, index=True)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
     is_superuser = Column(Boolean, default=False)
-    last_login = Column(DateTime, index=True)
+    last_login = Column(DateTime, index=True, nullable=True, default=None)
+    reset_password_token = Column(String, unique=True, default=None, nullable=True)
+    email_confirmed = Column(Boolean, default=False)
 
 
 class Vacancy(Base):

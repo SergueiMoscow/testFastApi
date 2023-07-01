@@ -1,6 +1,5 @@
 config.py
 venv
-auth
 .env
 .idea
 __pycache__

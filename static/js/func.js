@@ -41,3 +41,25 @@ async function send(data){
         else
             console.log(response);
 }
+
+const login = async (username, password) => {
+  const response = await fetch('/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      username: username,
+      password: password
+    })
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    localStorage.setItem('access_token', data.access_token);
+    return true;
+  } else {
+    const error = await response.json();
+    throw new Error(error.detail);
+  }
+};

@@ -6,9 +6,12 @@ from typing import Dict, Any
 
 from job.ManageData import ManageData
 from job.logger import debug
+from auth.routes import router as auth_router
+
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"))
+app.include_router(auth_router)
 
 
 @app.get("/")
@@ -39,3 +42,4 @@ async def action(payload: Dict[Any, Any]):
     # action_type, vacancy_id = action.split('_')
     # result = ManageData.add_action(action_type, vacancy_id, text)
     pass
+
