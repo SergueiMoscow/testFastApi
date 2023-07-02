@@ -4,8 +4,8 @@ import jwt
 from fastapi import APIRouter, Depends, FastAPI, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, HTTPBasicCredentials
 
-from auth.users import get_user, get_current_user
-from auth.jwt_token import create_access_token, verify_password, pwd_context, SECRET_KEY
+from auth.users import get_user, get_current_user, refresh_token_if_need
+from auth.jwt_token import create_access_token, pwd_context
 
 app = FastAPI()
 
@@ -33,21 +33,12 @@ def login(credentials: HTTPBasicCredentials):
     if not pwd_context.verify(credentials.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
-    jwt_token = jwt.encode({"username": user.username}, SECRET_KEY, algorithm="HS256")
+    jwt_token = create_access_token(data={"username": user.username})
     return {"access_token": jwt_token}
 
 
 @router.get("/protected")
 async def protected_route(current_user=Depends(get_current_user)):
-    return {"message": "This is a protected route.", "user": current_user.username, "email": current_user.email}
+    result = {"message": "This is a protected route.", "user": current_user.username, "email": current_user.email}
+    return refresh_token_if_need(result, current_user)
 
-def authenticate_user(username: str, password: str):
-    pass
-
-#     # здесь должна быть проверка учетных данных пользователя и возвращение его данных, если они верны
-# ```
-#
-# В этом примере мы используем класс `OAuth2PasswordBearer` из библиотеки `fastapi.security` для создания
-# зависимости, которая будет использоваться для проверки токена на каждый запрос. Мы также определяем маршрут
-# `/token`, который будет использоваться для аутентификации пользователей. В этом маршруте мы проверяем учетные
-# данные пользователя и создаем токен JWT с помощью функции `create_access_token()` из модуля `jwt_token`.

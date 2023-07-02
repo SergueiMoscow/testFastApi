@@ -3,10 +3,21 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import jwt
+from fastapi import HTTPException
 from passlib.context import CryptContext
 
+from job.models import User
+
 SECRET_KEY = os.environ.get("SECRET_KEY")
-ALGORITHM = "HS256"
+token_expiration_minutes = int(os.environ.get('TOKEN_EXPIRATION_MINUTES')) \
+    if os.environ.get('TOKEN_EXPIRATION_MINUTES') is not None \
+    else 15
+token_refresh_last_minutes = int(os.environ.get('TOKEN_REFRESH_LAST_MINUTES')) \
+    if os.environ.get('TOKEN_REFRESH_LAST_MINUTES') is not None \
+    else 10
+
+algorithm = os.environ.get('ALGORITHM')
+
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -17,31 +28,17 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=token_expiration_minutes)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=algorithm)
     return encoded_jwt
 
 
-def verify_token(token: str):
+def get_token_remaining_time(token):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
-    except jwt.JWTError:
-        return None
-
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-# ```
-#
-# В этом примере мы используем библиотеку `passlib` для хэширования паролей и библиотеку `PyJWT` для работы с
-# токенами JWT. Мы также определяем некоторые константы, такие как секретный ключ и время жизни токена.
-#
-# Функция `create_access_token()` используется для создания токена JWT на основе переданных данных. Функция
-# `verify_token()` используется для проверки токена и возвращает данные, содержащиеся в токене, если токен
-# действительный. Функции `get_password_hash()` и `verify_password()` используются для хэширования и проверки паролей.
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        exp_timestamp = payload["exp"]
+        remaining_time = exp_timestamp - datetime.utcnow().timestamp()
+        return remaining_time if remaining_time > 0 else 0
+    except jwt.exceptions.DecodeError:
+        return 0

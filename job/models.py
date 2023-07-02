@@ -31,6 +31,7 @@ class User(Base):
     last_login = Column(DateTime, index=True, nullable=True, default=None)
     reset_password_token = Column(String, unique=True, default=None, nullable=True)
     email_confirmed = Column(Boolean, default=False)
+    need_refresh_token = Column(Boolean, default=False)
 
 
 class Vacancy(Base):
