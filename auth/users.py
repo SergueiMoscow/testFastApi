@@ -41,18 +41,20 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     except jwt.exceptions.DecodeError:
         raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    except jwt.exceptions.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Expired authentication credentials")
 
     # Check if token has expired
     token_exp = payload.get("exp")
-    debug(f"f: get_current_user, token_exp (type): {datetime.utcfromtimestamp(token_exp)}, dte: {datetime.utcnow()}")
+    debug(f"f: get_current_user, token_exp (type): {datetime.utcfromtimestamp(token_exp)}, dt: {datetime.utcnow()}")
     user = get_user(username)
     if user is None:
         raise HTTPException(status_code=401, detail="Invalid username or password")
     # for debugging:
     debug(f'Refresh last {os.environ.get("TOKEN_REFRESH_LAST_MINUTES")} minutes before expiring')
-    token_need_pudate_str = datetime.utcfromtimestamp(token_exp - (60 * int(os.environ.get('TOKEN_REFRESH_LAST_MINUTES')))).strftime("%Y-%m-%d %H:%M:%S")
+    token_need_update_str = datetime.utcfromtimestamp(token_exp - (60 * int(os.environ.get('TOKEN_REFRESH_LAST_MINUTES')))).strftime("%Y-%m-%d %H:%M:%S")
     token_exp_str = datetime.utcfromtimestamp(token_exp).strftime("%Y-%m-%d %H:%M:%S")
-    debug(f'Update at: {token_need_pudate_str}, exp: {token_exp_str}')
+    debug(f'Update at: {token_need_update_str}, exp: {token_exp_str}')
 
     if token_exp is None or (
             datetime.utcfromtimestamp(token_exp - (60 * int(os.environ.get('TOKEN_REFRESH_LAST_MINUTES')))) <

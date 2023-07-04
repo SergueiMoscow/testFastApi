@@ -2,7 +2,7 @@ from contextlib import contextmanager
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, Integer, String, func, DateTime, Boolean, Text, Index, Date, TIMESTAMP, \
-    text, inspect, Inspector, Table
+    text, inspect
 import os
 from sqlalchemy.orm import declarative_base, sessionmaker
 

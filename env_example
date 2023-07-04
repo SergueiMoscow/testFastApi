@@ -5,5 +5,5 @@ pgsql_password = 'password'
 pgsql_db = 'job'
 SECRET_KEY = 'your_secret_key'
 TOKEN_EXPIRATION_MINUTES = 15
-TOKEN_REFRESH_LAST_MINUTES = 10
+TOKEN_REFRESH_LAST_MINUTES = 5
 
