@@ -4,15 +4,28 @@ from datetime import datetime
 import jwt
 from fastapi import HTTPException, Header, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
 from sqlalchemy.orm import sessionmaker
 
 from auth.jwt_token import SECRET_KEY, create_access_token, algorithm
 from job.logger import debug
 from job.models import User, engine
 from passlib.context import CryptContext
+from pydantic import BaseModel
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
+
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    email: str
+    captcha: str
+
+    def hash_password(self):
+        self.password = pwd_context.hash(self.password)
+        return self
 
 
 def create_super_user(username='admin', password='password', email='admin@example.com'):

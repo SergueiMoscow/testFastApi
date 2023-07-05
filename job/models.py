@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, Column, Integer, String, func, DateTime, Boolean, Text, Index, Date, TIMESTAMP, \
     text, inspect
 import os
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 load_dotenv()
 str_engine = f"postgresql://{os.getenv('pgsql_user')}:{os.getenv('pgsql_password')}@" \
@@ -32,6 +32,14 @@ class User(Base):
     reset_password_token = Column(String, unique=True, default=None, nullable=True)
     email_confirmed = Column(Boolean, default=False)
     need_refresh_token = Column(Boolean, default=False)
+
+    def save(self):
+        _session = sessionmaker(bind=engine)
+        session = _session()
+        session.add(self)
+        session.commit()
+        session.close()
+        return self
 
 
 class Vacancy(Base):

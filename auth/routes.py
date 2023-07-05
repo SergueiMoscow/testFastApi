@@ -1,12 +1,12 @@
 import os
 
 import jwt
-from fastapi import APIRouter, Depends, FastAPI, HTTPException
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, HTTPBasicCredentials
 from fastapi.responses import Response
 
 from auth.captcha import generate_captcha
-from auth.users import get_user, get_current_user, refresh_token_if_need
+from auth.users import get_user, get_current_user, refresh_token_if_need, UserCreate
 from auth.jwt_token import create_access_token, pwd_context
 from job.logger import debug
 from job.models import User
@@ -39,11 +39,32 @@ async def get_captcha():
     return response
 
 
-# @app.post("/register")
-# def register_user(user: User):
-#     debug(f"Registering user {user.username}")
-    # save_user(user)
-    # return {"message": "User created"}
+async def get_headers(request: Request):
+    return request.headers
+
+
+@router.post("/register")
+async def register_user(create_user: UserCreate, headers: dict = Depends(get_headers)):
+    captcha_encrypted = headers.get('token')
+    if not captcha_encrypted:
+        raise HTTPException(status_code=401, detail="Missing captcha")
+    captcha_text = jwt.decode(captcha_encrypted, options={"verify_signature": False})['captcha-text']
+    if captcha_text != create_user.captcha:
+        raise HTTPException(status_code=401, detail="Invalid captcha")
+    debug(f"Create user {create_user}")
+    create_user.hash_password()
+    user = get_user(create_user.username)
+    debug(f"User {user}")
+    if user:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    user_dict = create_user.dict()
+    user_dict["is_superuser"] = False
+
+    del user_dict["captcha"]
+    debug(f"Dict user {user_dict}")
+    user = User(**user_dict)
+    user.save()
+    return {"message": "User created successfully"}
 
 
 @router.get("/protected")
